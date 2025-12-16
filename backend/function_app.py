@@ -5,6 +5,9 @@ import os
 
 app = func.FunctionApp()
 
+# Embedding settings
+EMBEDDING_MODEL = "text-embedding-3-small"
+EMBEDDING_DIMENSIONS = 1536
 
 # =============================================================================
 # CORS Headers Helper
@@ -32,19 +35,20 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
         results["pinecone"] = f"FAIL - {e}"
     
     try:
+        import openai
+        results["openai"] = f"OK - {openai.__version__}"
+    except Exception as e:
+        results["openai"] = f"FAIL - {e}"
+    
+    try:
         import anthropic
         results["anthropic"] = f"OK - {anthropic.__version__}"
     except Exception as e:
         results["anthropic"] = f"FAIL - {e}"
     
-    try:
-        from sentence_transformers import SentenceTransformer
-        results["sentence_transformers"] = "OK"
-    except Exception as e:
-        results["sentence_transformers"] = f"FAIL - {e}"
-    
     # Check API keys are configured (don't expose values)
     results["PINECONE_API_KEY"] = "SET" if os.environ.get("PINECONE_API_KEY") else "MISSING"
+    results["OPENAI_API_KEY"] = "SET" if os.environ.get("OPENAI_API_KEY") else "MISSING"
     results["ANTHROPIC_API_KEY"] = "SET" if os.environ.get("ANTHROPIC_API_KEY") else "MISSING"
     
     return func.HttpResponse(
@@ -52,6 +56,15 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
         mimetype="application/json",
         headers=CORS_HEADERS
     )
+
+
+def get_embedding(text: str, openai_client) -> list[float]:
+    """Get embedding from OpenAI API."""
+    response = openai_client.embeddings.create(
+        model=EMBEDDING_MODEL,
+        input=text
+    )
+    return response.data[0].embedding
 
 
 # =============================================================================
@@ -73,16 +86,7 @@ def rag_query(req: func.HttpRequest) -> func.HttpResponse:
     Response:
     {
         "answer": "...",
-        "sources": [
-            {
-                "text": "...",
-                "source": "BSEE",
-                "doc_type": "equipment_manual",
-                "source_file": "...",
-                "score": 0.85
-            },
-            ...
-        ]
+        "sources": [...]
     }
     """
     # Handle CORS preflight
@@ -115,15 +119,15 @@ def rag_query(req: func.HttpRequest) -> func.HttpResponse:
     logging.info(f"RAG query: '{query[:50]}...' top_k={top_k} min_score={min_score}")
     
     try:
-        # Initialize clients
         from pinecone import Pinecone
-        from sentence_transformers import SentenceTransformer
+        from openai import OpenAI
         import anthropic
         
         pinecone_key = os.environ.get("PINECONE_API_KEY")
+        openai_key = os.environ.get("OPENAI_API_KEY")
         anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
         
-        if not pinecone_key or not anthropic_key:
+        if not all([pinecone_key, openai_key, anthropic_key]):
             return func.HttpResponse(
                 json.dumps({"error": "API keys not configured"}),
                 status_code=500,
@@ -131,15 +135,13 @@ def rag_query(req: func.HttpRequest) -> func.HttpResponse:
                 headers=CORS_HEADERS
             )
         
-        # Connect to Pinecone
+        # Initialize clients
         pc = Pinecone(api_key=pinecone_key)
         index = pc.Index("og-rag")
+        openai_client = OpenAI(api_key=openai_key)
         
-        # Load embedding model (cached after first call in warm instance)
-        embed_model = SentenceTransformer("BAAI/bge-base-en-v1.5")
-        
-        # Embed query
-        query_embedding = embed_model.encode(query).tolist()
+        # Embed query using OpenAI
+        query_embedding = get_embedding(query, openai_client)
         
         # Search Pinecone
         results = index.query(
@@ -270,7 +272,8 @@ def corpus_stats(req: func.HttpRequest) -> func.HttpResponse:
             json.dumps({
                 "total_vectors": stats.total_vector_count,
                 "dimension": stats.dimension,
-                "index_name": "og-rag"
+                "index_name": "og-rag",
+                "embedding_model": EMBEDDING_MODEL
             }),
             mimetype="application/json",
             headers=CORS_HEADERS

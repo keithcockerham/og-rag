@@ -1,13 +1,6 @@
-# Azure Functions O&G RAG API
+# Azure Functions O&G RAG API - Lightweight (OpenAI embeddings)
 
-# Azure Functions
 azure-functions>=1.17.0
-
-# Vector database
-pinecone-client>=3.0.0
-
-# Embeddings
-sentence-transformers>=2.2.0
-
-# LLM
+pinecone>=3.0.0
+openai>=1.0.0
 anthropic>=0.39.0
