@@ -2,7 +2,7 @@
 // Calls Azure Functions API for RAG queries
 
 // API Configuration - Update this after deploying Azure Function
-const API_BASE = 'https://og-rag-api.azurewebsites.net/api';  // Update with your Azure Function URL
+const API_BASE = 'https://og-rag-api-ebardmcjh4b0htdn.centralus-01.azurewebsites.net/api';
 
 // DOM Elements
 const queryInput = document.getElementById('queryInput');
