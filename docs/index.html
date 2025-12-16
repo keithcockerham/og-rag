@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O&G RAG Assistant | AI-Powered Domain Expert</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>🛢️ O&G RAG Assistant</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Query</a></li>
+                <li><a href="architecture.html">Architecture</a></li>
+                <li><a href="corpus.html">Corpus</a></li>
+                <li><a href="https://github.com/keithcockerham/og-rag" target="_blank">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h2>Oil & Gas Domain Expert</h2>
+                <p class="subtitle">RAG-powered assistant trained on 66,000+ chunks of regulatory documents, equipment manuals, and technical guidance</p>
+                <div class="hero-badges">
+                    <span class="badge badge-primary">Pinecone Vector DB</span>
+                    <span class="badge badge-secondary">Claude Sonnet 4</span>
+                    <span class="badge badge-tertiary">BGE Embeddings</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Metrics Section -->
+    <section class="metrics">
+        <div class="container">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon">📄</div>
+                    <div class="metric-value">66,497</div>
+                    <div class="metric-label">Vector Chunks</div>
+                    <div class="metric-desc">Searchable passages</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">📚</div>
+                    <div class="metric-value">1,000+</div>
+                    <div class="metric-label">Source Documents</div>
+                    <div class="metric-desc">PDFs & technical docs</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">🏛️</div>
+                    <div class="metric-value">5</div>
+                    <div class="metric-label">Source Agencies</div>
+                    <div class="metric-desc">BSEE, PHMSA, OSHA, CSB, IADC</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">⚡</div>
+                    <div class="metric-value">&lt;3s</div>
+                    <div class="metric-label">Response Time</div>
+                    <div class="metric-desc">Retrieval + generation</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Query Interface -->
+    <section class="query-section">
+        <div class="container">
+            <h2>Ask a Question</h2>
+            <div class="query-interface">
+                <div class="query-input-container">
+                    <textarea 
+                        id="queryInput" 
+                        placeholder="e.g., What causes high motor temperature in ESP systems?"
+                        rows="3"
+                    ></textarea>
+                    <button id="submitQuery" class="btn btn-primary">
+                        <span id="btnText">Search & Generate</span>
+                        <span id="btnSpinner" class="spinner hidden"></span>
+                    </button>
+                </div>
+                
+                <div class="query-settings">
+                    <div class="setting-group">
+                        <label for="topK">Sources to retrieve: <span id="topKValue">10</span></label>
+                        <input type="range" id="topK" min="3" max="20" value="10">
+                    </div>
+                    <div class="setting-group">
+                        <label for="minScore">Min similarity: <span id="minScoreValue">0.50</span></label>
+                        <input type="range" id="minScore" min="0.3" max="0.7" step="0.05" value="0.5">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Queries -->
+            <div class="sample-queries">
+                <p>Try these:</p>
+                <div class="sample-query-tags">
+                    <button class="sample-tag" data-query="What causes high motor temperature in ESP systems?">ESP troubleshooting</button>
+                    <button class="sample-tag" data-query="What is gas lock and how do you prevent it?">Gas lock</button>
+                    <button class="sample-tag" data-query="What are BOP testing requirements?">BOP testing</button>
+                    <button class="sample-tag" data-query="What is the difference between Driller's Method and Wait and Weight?">Well control methods</button>
+                    <button class="sample-tag" data-query="What are H2S safety requirements?">H2S safety</button>
+                    <button class="sample-tag" data-query="How do you calculate kill weight mud?">Kill weight mud</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section hidden" id="resultsSection">
+        <div class="container">
+            <h2>Response</h2>
+            
+            <!-- Answer -->
+            <div class="answer-container" id="answerContainer">
+                <div class="answer-content" id="answerContent"></div>
+            </div>
+
+            <!-- Sources -->
+            <div class="sources-container">
+                <h3>Sources Retrieved <span id="sourceCount"></span></h3>
+                <div class="sources-list" id="sourcesList"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Error Section -->
+    <section class="error-section hidden" id="errorSection">
+        <div class="container">
+            <div class="error-card">
+                <div class="error-icon">⚠️</div>
+                <p id="errorMessage">An error occurred</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section class="overview">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <h3>1️⃣ Semantic Search</h3>
+                    <p>Your query is embedded using BGE-base and matched against 66K+ document chunks in Pinecone vector database.</p>
+                </div>
+                <div class="overview-card">
+                    <h3>2️⃣ Context Retrieval</h3>
+                    <p>Top matching passages are retrieved with similarity scores, filtered by your threshold settings.</p>
+                </div>
+                <div class="overview-card">
+                    <h3>3️⃣ Answer Generation</h3>
+                    <p>Claude Sonnet 4 synthesizes an answer grounded in the retrieved sources, with citations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Corpus Overview -->
+    <section class="findings">
+        <div class="container">
+            <h2>Corpus Coverage</h2>
+            <div class="findings-grid">
+                <div class="finding-card">
+                    <div class="finding-icon">🏗️</div>
+                    <h3>Regulatory</h3>
+                    <p>BSEE safety alerts, PHMSA pipeline advisories, OSHA guidance, CSB investigation reports</p>
+                </div>
+                <div class="finding-card">
+                    <div class="finding-icon">⚙️</div>
+                    <h3>Equipment</h3>
+                    <p>ESP manuals (SLB, GE, Baker), BOP specs, artificial lift systems, completions equipment</p>
+                </div>
+                <div class="finding-card">
+                    <div class="finding-icon">📖</div>
+                    <h3>Technical</h3>
+                    <p>Bradley Petroleum Engineering Handbook, IADC well control guides, troubleshooting procedures</p>
+                </div>
+                <div class="finding-card">
+                    <div class="finding-icon">📝</div>
+                    <h3>Terminology</h3>
+                    <p>Curated O&G glossary with 45+ expert-defined terms across drilling, production, and safety</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section class="skills">
+        <div class="container">
+            <h2>Technologies</h2>
+            <div class="skills-grid">
+                <div class="skill-category">
+                    <h3>Vector Search</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Pinecone</span>
+                        <span class="skill-tag">BGE Embeddings</span>
+                        <span class="skill-tag">Semantic Search</span>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h3>LLM Integration</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Claude API</span>
+                        <span class="skill-tag">Anthropic SDK</span>
+                        <span class="skill-tag">Prompt Engineering</span>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h3>Data Pipeline</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Python</span>
+                        <span class="skill-tag">PyMuPDF</span>
+                        <span class="skill-tag">Web Scraping</span>
+                        <span class="skill-tag">Text Chunking</span>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h3>Deployment</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Azure Functions</span>
+                        <span class="skill-tag">GitHub Pages</span>
+                        <span class="skill-tag">REST API</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built by Keith | <a href="https://github.com/keithcockerham">GitHub</a> | <a href="https://linkedin.com/in/kcockerham">LinkedIn</a></p>
+            <p>O&G RAG Assistant | Retrieval-Augmented Generation for Energy Domain</p>
+        </div>
+    </footer>
+
+    <script src="rag.js"></script>
+</body>
+</html>
