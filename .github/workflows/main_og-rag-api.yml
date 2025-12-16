@@ -27,19 +27,19 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install dependencies
+      - name: Install dependencies into .python_packages
         run: |
           cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           python -m pip install --upgrade pip
-          # Install CPU-only PyTorch first to avoid 4GB+ of CUDA libraries
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
-          # Then install the rest
-          pip install -r requirements.txt
+          # Install CPU-only PyTorch first to avoid CUDA bloat
+          pip install torch --index-url https://download.pytorch.org/whl/cpu --target=".python_packages/lib/site-packages"
+          # Install remaining dependencies into the same target
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
 
       - name: Zip artifact for deployment
         run: |
           cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          zip -r ../release.zip . -x "venv/*" -x "__pycache__/*" -x "*.pyc"
+          zip -r ../release.zip . -x "__pycache__/*" -x "*.pyc"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -70,4 +70,3 @@ jobs:
           slot-name: 'Production'
           package: deploy
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_17AA9FB0F05D4419946D298F63012306 }}
-          sku: 'flexconsumption'
