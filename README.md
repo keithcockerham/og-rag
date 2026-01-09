@@ -1,5 +1,6 @@
 # 🛢️ O&G RAG Assistant
 **Currently Down Because I'm not Paying for APIs for a non-production project**
+
 **AI-powered domain expert for Oil & Gas operations, safety, and regulatory compliance**
 
 A Retrieval-Augmented Generation system trained on 66,000+ document chunks from regulatory agencies, equipment manuals, and technical literature. Combines semantic search with LLM capabilities to provide accurate, source-cited answers to complex O&G drilling questions.
